@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preposition Power-Up: Pro Edition</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #F5A623;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #F0F4F8;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Simplified Setup Screen */
+        #setup-screen {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 50px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            grid-template-columns: 220px 1fr 220px;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .score-board {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--white);
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border: 4px solid var(--primary);
+        }
+
+        .score-val {
+            font-size: 90px;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .center-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        #timer {
+            font-size: 54px;
+            font-weight: 800;
+            color: var(--danger);
+            height: 70px;
+            visibility: hidden;
+        }
+
+        #shuffle-container {
+            width: 100%;
+            height: 400px;
+            background: #d1d9e6;
+            border-radius: 20px;
+            border: 8px solid var(--white);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #display-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        .click-prompt {
+            color: #555;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 15px;
+        }
+
+        .opt-btn {
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            background: var(--white);
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0px #ccc;
+        }
+
+        .opt-btn.correct { background-color: var(--success) !important; color: white; box-shadow: 0 4px 0px #27ae60; }
+        .opt-btn.wrong { background-color: var(--danger) !important; color: white; box-shadow: 0 4px 0px #c0392b; }
+
+        .gm-controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .info-bar {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        button.control-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button.start-btn {
+            background: var(--success);
+            color: white;
+            padding: 18px 50px;
+            font-size: 24px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0px #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen">
+        <h2 style="color: var(--primary)">Preposition Power-Up</h2>
+        <p>All images are loaded and ready!</p>
+        <br>
+        <button class="start-btn" onclick="startGame()">LAUNCH GAME</button>
+    </div>
+
+    <div id="game-screen">
+        <div class="score-board">
+            <h3>TEAM 1</h3>
+            <div id="score1" class="score-val">0</div>
+            <button class="control-btn" style="background: #eee;" onclick="changeScore(1, 1)">+ POINT</button>
+        </div>
+
+        <div class="center-area">
+            <div class="info-bar" id="remaining-count">Photos remaining: 0</div>
+            <div id="timer">5</div>
+            
+            <div id="shuffle-container" onclick="handleShuffle()">
+                <span class="click-prompt" id="prompt-text">Click to Shuffle</span>
+                <img id="display-image" src="" alt="Question">
+            </div>
+
+            <div class="gm-controls">
+                <button id="timer-btn" class="control-btn" style="background: var(--secondary); color:white;" onclick="startTimer()" disabled>START 5s TIMER</button>
+                <button class="control-btn" style="background: #333; color:white;" onclick="resetRound()">NEXT ROUND</button>
+            </div>
+
+            <div class="options-grid" id="options-container"></div>
+        </div>
+
+        <div class="score-board">
+            <h3>TEAM 2</h3>
+            <div id="score2" class="score-val">0</div>
+            <button class="control-btn" style="background: #eee;" onclick="changeScore(2, 1)">+ POINT</button>
+        </div>
+    </div>
+
+    <script>
+        const prepositions = ["in", "on", "under", "above", "between", "beside", "in front of", "behind"];
+        
+        // --- CONFIGURE YOUR GITHUB LINKS HERE ---
+        // Put your 2 images per preposition inside the brackets
+        const masterLibrary = {
+            "in": [
+                "https://raw.githubusercontent.com/User/Repo/main/in1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/in2.png"
+            ],
+            "on": [
+                "https://raw.githubusercontent.com/User/Repo/main/on1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/on2.png"
+            ],
+            "under": [
+                "https://raw.githubusercontent.com/User/Repo/main/under1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/under2.png"
+            ],
+            "above": [
+                "https://raw.githubusercontent.com/User/Repo/main/above1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/above2.png"
+            ],
+            "between": [
+                "https://raw.githubusercontent.com/User/Repo/main/between1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/between2.png"
+            ],
+            "beside": [
+                "https://raw.githubusercontent.com/User/Repo/main/beside1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/beside2.png"
+            ],
+            "in front of": [
+                "https://raw.githubusercontent.com/User/Repo/main/front1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/front2.png"
+            ],
+            "behind": [
+                "https://raw.githubusercontent.com/User/Repo/main/behind1.png", 
+                "https://raw.githubusercontent.com/User/Repo/main/behind2.png"
+            ]
+        };
+
+        let workingPool = [];
+        let scores = { 1: 0, 2: 0 };
+        let isLocked = false;
+        let currentCorrectPrep = "";
+
+        // Preload images immediately
+        Object.values(masterLibrary).flat().forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+
+        function startGame() {
+            workingPool = [];
+            for (const prep in masterLibrary) {
+                masterLibrary[prep].forEach(url => {
+                    workingPool.push({ prep: prep, url: url });
+                });
+            }
+            
+            updateRemainingCount();
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'grid';
+        }
+
+        function updateRemainingCount() {
+            document.getElementById('remaining-count').innerText = `Unique photos left: ${workingPool.length}`;
+        }
+
+        function handleShuffle() {
+            if (isLocked) return;
+            if (workingPool.length === 0) {
+                alert("Game Over! All unique photos used.");
+                return;
+            }
+            
+            const img = document.getElementById('display-image');
+            const prompt = document.getElementById('prompt-text');
+            prompt.style.display = 'none';
+            img.style.display = 'block';
+
+            let count = 0;
+            let shuffleInterval = setInterval(() => {
+                const randomPrep = prepositions[Math.floor(Math.random() * prepositions.length)];
+                const randomImages = masterLibrary[randomPrep];
+                img.src = randomImages[Math.floor(Math.random() * randomImages.length)];
+                
+                count++;
+                if (count > 12) {
+                    clearInterval(shuffleInterval);
+                    finalizeSelection();
+                }
+            }, 80);
+        }
+
+        function finalizeSelection() {
+            const randomIndex = Math.floor(Math.random() * workingPool.length);
+            const selectedItem = workingPool.splice(randomIndex, 1)[0]; 
+            
+            const img = document.getElementById('display-image');
+            img.src = selectedItem.url;
+            currentCorrectPrep = selectedItem.prep;
+            
+            isLocked = true;
+            document.getElementById('timer-btn').disabled = false;
+            updateRemainingCount();
+            generateOptions(currentCorrectPrep);
+        }
+
+        function generateOptions(correct) {
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            
+            let distractors = prepositions.filter(p => p !== correct);
+            distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
+            const finalFour = [...distractors, correct].sort(() => 0.5 - Math.random());
+
+            finalFour.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.innerText = choice;
+                btn.onclick = () => {
+                    if (choice === currentCorrectPrep) {
+                        btn.classList.add('correct');
+                        document.querySelectorAll('.opt-btn').forEach(b => { if(b !== btn) b.style.opacity = "0.3"; b.onclick = null; });
+                    } else {
+                        btn.classList.add('wrong');
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function startTimer() {
+            const timerEl = document.getElementById('timer');
+            timerEl.style.visibility = 'visible';
+            let timeLeft = 5;
+            timerEl.innerText = timeLeft;
+            let countdown = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft || "TIME!";
+                if (timeLeft <= 0) clearInterval(countdown);
+            }, 1000);
+        }
+
+        function changeScore(team, val) {
+            scores[team] += val;
+            document.getElementById(`score${team}`).innerText = scores[team];
+        }
+
+        function resetRound() {
+            isLocked = false;
+            document.getElementById('timer').style.visibility = 'hidden';
+            document.getElementById('timer-btn').disabled = true;
+            document.getElementById('display-image').style.display = 'none';
+            document.getElementById('prompt-text').style.display = 'block';
+            document.getElementById('options-container').innerHTML = "";
+        }
+    </script>
+</body>
+</html>
